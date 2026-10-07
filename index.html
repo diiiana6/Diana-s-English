@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diana's English — Vocabulary</title>
+<style>
+:root{
+  --pink:#f45f91; --pink2:#ff8eb3; --bg:#fff7fb; --card:#ffffff;
+  --text:#493846; --muted:#9b8492; --lav:#f1e9ff; --mint:#e8fbf3;
+  --yellow:#fff7d8; --shadow:0 8px 24px rgba(130,80,110,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(145deg,#fff7fb,#f8f0ff);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+.app{max-width:520px;margin:auto;min-height:100vh;padding:20px 16px 100px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.logo{font-weight:800;font-size:22px}.logo span{color:var(--pink)}
+.profile{background:#fff;border-radius:50px;padding:9px 13px;box-shadow:var(--shadow);font-size:13px}
+h1{font-size:28px;margin:8px 0 4px}.sub{color:var(--muted);font-size:14px;margin-bottom:20px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat{background:#fff;padding:15px 10px;border-radius:20px;box-shadow:var(--shadow);text-align:center}
+.stat b{font-size:22px;display:block}.stat small{color:var(--muted)}
+.tabs{display:flex;background:#fff;border-radius:18px;padding:5px;box-shadow:var(--shadow);margin-bottom:16px}
+.tabs button{flex:1;border:0;background:transparent;padding:11px;border-radius:14px;color:var(--muted);font-weight:700}
+.tabs button.active{background:#ffe5ef;color:#d83e76}
+.card{background:#fff;border-radius:24px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.word{font-size:20px;font-weight:800}.translation{color:var(--muted);margin-top:5px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sound{border:0;background:#ffe5ef;color:#d83e76;border-radius:50%;width:40px;height:40px;font-size:18px}
+.badge{font-size:11px;padding:5px 9px;border-radius:20px;background:var(--mint);color:#31926b}
+button{font:inherit;cursor:pointer}
+.primary{width:100%;border:0;background:linear-gradient(90deg,var(--pink),var(--pink2));color:#fff;padding:15px;border-radius:17px;font-weight:800;font-size:16px;box-shadow:0 7px 16px rgba(244,95,145,.22)}
+.secondary{border:0;background:#f5eff8;padding:12px 16px;border-radius:14px;color:#6f5a68;font-weight:700}
+input{width:100%;padding:14px;border:2px solid #f2e4ed;border-radius:15px;outline:none;margin:7px 0}
+input:focus{border-color:#f5a5c1}
+.modal{position:fixed;inset:0;background:rgba(55,30,50,.35);display:none;align-items:flex-end;justify-content:center;padding:14px}
+.modalBox{background:#fff;width:min(520px,100%);border-radius:28px;padding:22px}
+.trainer{display:none}.trainer.show{display:block}
+.bigword{text-align:center;padding:40px 15px}.bigword .en{font-size:34px;font-weight:900}.bigword .ua{font-size:19px;color:var(--muted);margin-top:10px}
+.options{display:grid;gap:10px}.option{border:2px solid #f2e4ed;background:#fff;padding:14px;border-radius:15px;text-align:left}.option:hover{border-color:#f18aad}
+.progress{height:8px;background:#f2e6ee;border-radius:20px;overflow:hidden;margin:12px 0}.progress i{display:block;height:100%;background:linear-gradient(90deg,#f45f91,#ffb0c9);width:0}
+.empty{text-align:center;color:var(--muted);padding:28px}
+.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:min(490px,calc(100% - 24px));background:#fff;border-radius:24px;box-shadow:0 8px 30px rgba(80,40,70,.15);display:flex;padding:8px}
+.nav button{flex:1;border:0;background:none;padding:10px 4px;color:#9b8492;font-size:12px}.nav button.active{color:#df4b80;font-weight:800}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">🌸 Diana's <span>English</span></div><div class="profile">👧 Sofia</div></header>
+
+<section id="home">
+<h1>Мій словничок 📚</h1><div class="sub">Вчи слова маленькими кроками ✨</div>
+<div class="stats">
+<div class="stat"><b id="total">0</b><small>усі слова</small></div>
+<div class="stat"><b id="learned">0</b><small>вивчено</small></div>
+<div class="stat"><b id="practice">0</b><small>повторити</small></div>
+</div>
+<div class="tabs">
+<button class="active" onclick="filterWords('all',this)">Усі</button>
+<button onclick="filterWords('practice',this)">🌱 Вчити</button>
+<button onclick="filterWords('learned',this)">⭐ Вивчені</button>
+</div>
+
+<div class="card" id="unitsCard">
+  <div class="row">
+    <b>📚 My Units</b>
+    <button class="secondary" onclick="addUnit()">＋ Unit</button>
+  </div>
+  <div id="units" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"></div>
+</div>
+<div class="card">
+  <div class="row">
+    <b>✨ Today's 5</b>
+    <span class="badge" id="todayCount">0 / 5</span>
+  </div>
+  <div class="sub" style="margin:7px 0 0">П'ять слів для короткого щоденного повторення.</div>
+</div>
+
+<div id="wordList"></div>
+<button class="primary" onclick="openModal()">＋ Додати нове слово</button>
+</section>
+
+
+<section id="verbs" class="trainer">
+<div class="card" style="background:linear-gradient(135deg,#fff0f6,#f2eaff);text-align:center;padding:22px"><div style="font-size:36px">⚡📚</div><h1 style="margin:6px 0">Irregular Verbs</h1><div class="sub" style="margin:0">Окремий словничок для неправильних дієслів</div></div>
+<div class="sub">Вивчай 3 форми, переклад і тренуй їх окремо ✨</div>
+<div class="stats">
+<div class="stat"><b id="verbTotal">0</b><small>усі дієслова</small></div>
+<div class="stat"><b id="verbLearned">0</b><small>вивчено</small></div>
+<div class="stat"><b id="verbPractice">0</b><small>повторити</small></div>
+</div>
+<div class="card">
+<div class="row"><b>📖 Мій список</b><span class="badge">Irregular Verbs</span></div>
+<div id="verbList" style="margin-top:12px"></div>
+<button class="primary" onclick="openVerbModal()">＋ Додати дієслово</button>
+</div>
+<div class="card">
+<b>🎮 Тренажер неправильних дієслів</b>
+<p class="sub">Вчи форми поетапно: V1 → V2 → V3 → переклад</p>
+<button class="primary" onclick="startVerbTrainer()">Почати тренування</button>
+<div class="card">
+  <b>✍️ Fill in the missing form</b>
+  <p class="sub">Напиши пропущену форму — програма перевірить відповідь.</p>
+  <button class="primary" onclick="startVerbFillTest()">Почати тест</button>
+</div>
+
+</div>
+</section>
+
+<section id="trainer" class="trainer">
+<h1>🎮 Навчальний тренажер</h1><div class="sub">Обери режим і потренуй свої слова</div>
+<div class="card">
+<div class="row"><b>🎴 Флеш-картки</b><span class="badge">повторення</span></div>
+<button class="primary" style="margin-top:14px" onclick="startFlash()">Почати</button>
+</div>
+<div class="card">
+<div class="row"><b>🎯 Вікторина</b><span class="badge">переклад</span></div>
+<button class="primary" style="margin-top:14px" onclick="startQuiz()">Почати</button>
+</div>
+<div class="card">
+<div class="row"><b>🧩 Склади фразу</b><span class="badge">практика</span></div>
+<button class="primary" style="margin-top:14px" onclick="startSentence()">Почати</button>
+</div>
+<div class="card">
+<b>✨ Слова на сьогодні</b>
+<p class="sub">Тренуй 5 слів щодня</p>
+<div class="progress"><i id="dailyBar"></i></div>
+</div>
+</section>
+
+<section id="game" class="trainer">
+<div class="card">
+<div class="row"><button class="secondary" onclick="showSection('trainer')">← Назад</button><b id="gameTitle"></b><span id="gameCount"></span></div>
+<div id="gameArea"></div>
+</div>
+</section>
+</div>
+
+<div class="nav">
+<button class="active" onclick="showSection('home',this)">🏠<br><span>Словник</span></button>
+<button onclick="showSection('trainer',this)">🎮<br><span>Тренажер</span></button>
+<button onclick="showSection('verbs',this)">⚡<br><span>Irregular Verbs</span></button>
+</div>
+
+
+<div class="modal" id="verbModal">
+<div class="modalBox">
+<div class="row"><h2>⚡ Нове дієслово</h2><button class="sound" onclick="closeVerbModal()">×</button></div>
+<label>V1 — Infinitive</label><input id="v1" placeholder="go">
+<label>V2 — Past Simple</label><input id="v2" placeholder="went">
+<label>V3 — Past Participle</label><input id="v3" placeholder="gone">
+<label>Український переклад</label><input id="vua" placeholder="йти">
+<button class="primary" onclick="addVerb()">＋ Додати до списку</button>
+</div></div>
+
+<div class="modal" id="modal">
+<div class="modalBox">
+<div class="row"><h2>✨ Нове слово</h2><button class="sound" onclick="closeModal()">×</button></div>
+<label>Англійське слово або фраза</label>
+<input id="en" placeholder="a computer game">
+<label>Український переклад</label>
+<input id="ua" placeholder="комп'ютерна гра">
+<label>Unit</label>
+<input id="unit" placeholder="Unit 1">
+<button class="primary" onclick="addWord()">＋ Додати до словничка</button>
+</div>
+</div>
+
+<script>
+
+let words = JSON.parse(localStorage.getItem('dianaWords')||'null') || [
+ {en:'a computer game',ua:"комп'ютерна гра",unit:'Unit 1',learned:false,errors:0,last:0},
+ {en:'a bike',ua:'велосипед',unit:'Unit 1',learned:false,errors:0,last:0},
+ {en:'a ball',ua:"м'яч",unit:'Unit 1',learned:false,errors:0,last:0},
+ {en:'toys',ua:'іграшки',unit:'Unit 1',learned:true,errors:0,last:0},
+ {en:'a box',ua:'коробка',unit:'Unit 1',learned:false,errors:1,last:0},
+ {en:'big',ua:'великий',unit:'Unit 1',learned:true,errors:0,last:0},
+ {en:'fun games',ua:'цікаві ігри',unit:'Unit 1',learned:false,errors:0,last:0}
+];
+let units = JSON.parse(localStorage.getItem('dianaUnits')||'null') || ['Unit 1'];
+let currentUnit = 'All';
+let currentFilter='all', gameWords=[], gameIndex=0, mode='', verbTestIndex=0;
+
+function save(){localStorage.setItem('dianaWords',JSON.stringify(words));localStorage.setItem('dianaUnits',JSON.stringify(units));}
+function stats(){
+ document.getElementById('total').textContent=words.length;
+ document.getElementById('learned').textContent=words.filter(w=>w.learned).length;
+ document.getElementById('practice').textContent=words.filter(w=>!w.learned).length;
+ let today=getTodayWords();
+ document.getElementById('todayCount').textContent=today.length+' / 5';
+ document.getElementById('dailyBar').style.width=Math.min(100,today.filter(w=>w.learned).length/5*100)+'%';
+}
+function speak(t){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='en-US';speechSynthesis.speak(u);}
+function getTodayWords(){
+ return [...words].sort((a,b)=>(b.errors||0)-(a.errors||0) || (a.learned?1:0)-(b.learned?1:0)).slice(0,5);
+}
+function renderUnits(){
+ let el=document.getElementById('units'); if(!el)return;
+ let all=['All',...units];
+ el.innerHTML=all.map(u=>`<button class="secondary" style="${currentUnit===u?'background:#ffe5ef;color:#d83e76':''}" onclick="selectUnit(${JSON.stringify(u)})">${esc(u)}</button>`).join('');
+}
+function selectUnit(u){currentUnit=u;renderUnits();render();}
+function addUnit(){
+ let u=prompt('Назва нового Unit:',`Unit ${units.length+1}`);
+ if(u && !units.includes(u.trim())){units.push(u.trim());save();renderUnits();render();}
+}
+function render(){
+ let list=words.filter(w=>{
+   let filter=currentFilter==='all'||(currentFilter==='learned'?w.learned:!w.learned);
+   let unit=currentUnit==='All'||(w.unit||'Unit 1')===currentUnit;
+   return filter&&unit;
+ });
+ let el=document.getElementById('wordList');
+ if(!list.length){el.innerHTML='<div class="empty">Тут поки немає слів 🌸</div>';return}
+ el.innerHTML=list.map(w=>{
+  let real=words.indexOf(w);
+  return `<div class="card"><div class="row"><div><div class="word">${esc(w.en)}</div><div class="translation">${esc(w.ua)}</div><div style="margin-top:7px;font-size:11px;color:#b19eaa">${esc(w.unit||'Unit 1')}</div></div><button class="sound" onclick="speak(${JSON.stringify(w.en)})">🔊</button></div>
+  <div class="row" style="margin-top:12px"><span class="badge">${w.learned?'✓ Вивчено':'🌱 Потрібно вивчити'}</span><button class="secondary" onclick="toggleLearned(${real})">${w.learned?'Повторити':'Вивчила ✓'}</button></div></div>`;
+ }).join('');
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function filterWords(f,b){currentFilter=f;document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');render();}
+function toggleLearned(i){words[i].learned=!words[i].learned;words[i].last=Date.now();save();stats();render();}
+function openModal(){document.getElementById('modal').style.display='flex';document.getElementById('en').focus();}
+function closeModal(){document.getElementById('modal').style.display='none';}
+function addWord(){
+ let en=document.getElementById('en').value.trim(),ua=document.getElementById('ua').value.trim(),unit=(document.getElementById('unit').value.trim()||'Unit 1');
+ if(!en||!ua){alert('Заповни обидва поля 😊');return}
+ if(!units.includes(unit)){units.push(unit)}
+ words.unshift({en,ua,unit,learned:false,errors:0,last:0});save();stats();renderUnits();render();closeModal();
+ ['en','ua','unit'].forEach(id=>document.getElementById(id).value='');
+}
+function showSection(id,btn){
+ ['home','trainer','verbs','game'].forEach(x=>{const el=document.getElementById(x);if(el)el.classList.toggle('hidden',x!==id)});
+ if(id==='trainer'||id==='verbs'||id==='game'){const el=document.getElementById(id);if(el)el.classList.add('show')}
+ if(btn){document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
+ window.scrollTo(0,0);
+}
+function startFlash(){begin('flash','🎴 Флеш-картки',getTodayWords());}
+function startQuiz(){begin('quiz','🎯 Вікторина',getTodayWords());}
+function startSentence(){begin('sentence','🧩 Склади фразу',getTodayWords());}
+function begin(m,title,list){gameWords=list.length?list:words.slice(0,10);gameIndex=0;mode=m;document.getElementById('gameTitle').textContent=title;showSection('game');renderGame();}
+function renderGame(){
+ if(gameIndex>=gameWords.length){document.getElementById('gameArea').innerHTML=`<div class="bigword">🎉<div class="en">Готово!</div><div class="ua">Ти опрацювала всі слова.</div></div><button class="primary" onclick="showSection('trainer')">Ще раз</button>`;return}
+ let w=gameWords[gameIndex];document.getElementById('gameCount').textContent=`${gameIndex+1} / ${gameWords.length}`;
+ if(mode==='flash')document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="en">${esc(w.en)}</div><button class="sound" style="margin-top:18px" onclick="speak(${JSON.stringify(w.en)})">🔊</button><div class="ua" id="flashUa">Натисни, щоб побачити переклад</div></div><button class="primary" onclick="revealFlash()">Показати переклад</button>`;
+ else if(mode==='quiz'){
+  let opts=[w.ua,...words.filter(x=>x.ua!==w.ua).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.ua)].sort(()=>Math.random()-.5);
+  document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="en">${esc(w.en)}</div></div><div class="options">${opts.map(o=>`<button class="option" onclick="answerQuiz(${JSON.stringify(o)},${JSON.stringify(w.ua)})">${esc(o)}</button>`).join('')}</div>`;
+ } else document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="ua">${esc(w.ua)}</div></div><input id="sentence" placeholder="It's a ..."><button class="primary" onclick="checkSentence()">Перевірити</button>`;
+}
+function revealFlash(){document.getElementById('flashUa').textContent=gameWords[gameIndex].ua;setTimeout(nextGame,350)}
+function answerQuiz(a,c){if(a===c){alert('🎉 Правильно!');nextGame()}else{let w=gameWords[gameIndex],i=words.indexOf(w);if(i>=0)words[i].errors=(words[i].errors||0)+1;save();alert('💗 Спробуй ще раз!')}}
+function checkSentence(){let v=document.getElementById('sentence').value.toLowerCase(),target=gameWords[gameIndex].en.toLowerCase();if(v.includes(target)){alert('🎉 Молодець!');nextGame()}else{let i=words.indexOf(gameWords[gameIndex]);if(i>=0)words[i].errors=(words[i].errors||0)+1;save();alert('💗 Спробуй використати слово: '+gameWords[gameIndex].en)}}
+function nextGame(){gameIndex++;renderGame()}
+
+let verbs = JSON.parse(localStorage.getItem('dianaIrregularVerbs')||'null') || [
+ {v1:'be',v2:'was/were',v3:'been',ua:'бути',learned:false},
+ {v1:'go',v2:'went',v3:'gone',ua:'йти',learned:false},
+ {v1:'have',v2:'had',v3:'had',ua:'мати',learned:true},
+ {v1:'do',v2:'did',v3:'done',ua:'робити',learned:false},
+ {v1:'see',v2:'saw',v3:'seen',ua:'бачити',learned:false},
+ {v1:'come',v2:'came',v3:'come',ua:'приходити',learned:false},
+ {v1:'make',v2:'made',v3:'made',ua:'робити / створювати',learned:false},
+ {v1:'take',v2:'took',v3:'taken',ua:'брати',learned:false},
+ {v1:'get',v2:'got',v3:'got/gotten',ua:'отримувати',learned:false},
+ {v1:'write',v2:'wrote',v3:'written',ua:'писати',learned:false}
+];
+function saveVerbs(){localStorage.setItem('dianaIrregularVerbs',JSON.stringify(verbs));}
+function renderVerbs(){
+ document.getElementById('verbTotal').textContent=verbs.length;document.getElementById('verbLearned').textContent=verbs.filter(v=>v.learned).length;document.getElementById('verbPractice').textContent=verbs.filter(v=>!v.learned).length;
+ document.getElementById('verbList').innerHTML=verbs.map((v,i)=>`<div class="card" style="background:#fffafd;margin-bottom:10px;padding:14px"><div class="row"><div><div class="word">${esc(v.v1)}</div><div style="margin-top:5px;font-weight:700">${esc(v.v2)} · ${esc(v.v3)}</div><div class="translation">${esc(v.ua)}</div></div><button class="sound" onclick="speak(${JSON.stringify(v.v1)})">🔊</button></div><div class="row" style="margin-top:10px"><span class="badge">${v.learned?'✓ Вивчено':'🌱 Потрібно вивчити'}</span><button class="secondary" onclick="toggleVerb(${i})">${v.learned?'Повторити':'Вивчила ✓'}</button></div></div>`).join('');
+}
+function openVerbModal(){document.getElementById('verbModal').style.display='flex';document.getElementById('v1').focus()}
+function closeVerbModal(){document.getElementById('verbModal').style.display='none'}
+function addVerb(){let v1=document.getElementById('v1').value.trim(),v2=document.getElementById('v2').value.trim(),v3=document.getElementById('v3').value.trim(),ua=document.getElementById('vua').value.trim();if(!v1||!v2||!v3||!ua){alert('Заповни всі поля 😊');return}verbs.unshift({v1,v2,v3,ua,learned:false});saveVerbs();renderVerbs();closeVerbModal();['v1','v2','v3','vua'].forEach(id=>document.getElementById(id).value='')}
+function toggleVerb(i){verbs[i].learned=!verbs[i].learned;saveVerbs();renderVerbs()}
+function startVerbTrainer(){gameWords=verbs.filter(v=>!v.learned).slice(0,10);if(!gameWords.length)gameWords=verbs.slice(0,10);gameIndex=0;mode='verbs';document.getElementById('gameTitle').textContent='⚡ Неправильні дієслова';showSection('game');renderVerbGame()}
+function renderVerbGame(){if(gameIndex>=gameWords.length){document.getElementById('gameArea').innerHTML='<div class="bigword">🎉<div class="en">Тренування завершено!</div><div class="ua">Супер!</div></div><button class="primary" onclick="showSection(\'verbs\')">До дієслів</button>';return}let v=gameWords[gameIndex];document.getElementById('gameCount').textContent=`${gameIndex+1} / ${gameWords.length}`;document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="en">${esc(v.v1)}</div><div class="ua">${esc(v.ua)}</div></div><div class="options"><button class="option" onclick="showVerbForm('V2')"><b>V2:</b> показати Past Simple</button><button class="option" onclick="showVerbForm('V3')"><b>V3:</b> показати Past Participle</button><button class="option" onclick="speak(${JSON.stringify(v.v1)})">🔊 Послухати</button></div>`}
+function showVerbForm(which){let v=gameWords[gameIndex],answer=which==='V2'?v.v2:v.v3;document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="en">${esc(v.v1)}</div><div style="font-size:23px;font-weight:800;margin-top:15px">${which}: ${esc(answer)}</div><div class="ua">${esc(v.ua)}</div></div><button class="primary" onclick="nextVerbGame()">Наступне →</button>`}
+function nextVerbGame(){gameIndex++;renderVerbGame()}
+
+function startVerbFillTest(){verbTestIndex=0;gameWords=[...verbs].sort(()=>Math.random()-.5).slice(0,10);mode='verbfill';gameIndex=0;document.getElementById('gameTitle').textContent='✍️ Fill in the missing form';showSection('game');renderVerbFill()}
+function renderVerbFill(){
+ if(gameIndex>=gameWords.length){document.getElementById('gameArea').innerHTML='<div class="bigword">🏆<div class="en">Test complete!</div><div class="ua">Чудова робота!</div></div><button class="primary" onclick="showSection(\'verbs\')">Назад</button>';return}
+ let v=gameWords[gameIndex],forms=[v.v1,v.v2,v.v3],missing=Math.floor(Math.random()*3),shown=forms.map((x,i)=>i===missing?'_____':x);
+ document.getElementById('gameCount').textContent=`${gameIndex+1} / ${gameWords.length}`;
+ document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="en">${shown.join(' → ')}</div><div class="ua">${esc(v.ua)}</div></div><input id="verbAnswer" placeholder="Введи пропущену форму"><button class="primary" onclick="checkVerbFill(${JSON.stringify(forms[missing])})">Перевірити</button>`;
+}
+function checkVerbFill(correct){
+ let ans=document.getElementById('verbAnswer').value.trim().toLowerCase();
+ if(ans===correct.toLowerCase()){alert('🎉 Correct!');gameIndex++;renderVerbFill()}
+ else {let v=gameWords[gameIndex],real=verbs.indexOf(v);if(real>=0)v.errors=(v.errors||0)+1;saveVerbs();alert('💗 Не зовсім. Правильна відповідь: '+correct)}
+}
+renderUnits();renderVerbs();stats();render();
+
+</script>
+</body>
+</html>
