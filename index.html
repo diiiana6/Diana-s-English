@@ -109,7 +109,7 @@ input:focus{border-color:#f5a5c1}
 </section>
 
 <section id="trainer" class="trainer">
-<h1>🎮 Навчальний тренажер</h1><div class="sub">Обери режим і потренуй свої слова</div>
+<h1>🎮 Навчальний тренажер</h1><div class="sub">Обери режим і потренуй свої слова. 🔊 Натискай на динамік, щоб почути вимову.</div>
 <div class="card">
 <div class="row"><b>🎴 Флеш-картки</b><span class="badge">повторення</span></div>
 <button class="primary" style="margin-top:14px" onclick="startFlash()">Почати</button>
@@ -191,7 +191,23 @@ function stats(){
  document.getElementById('todayCount').textContent=today.length+' / 5';
  document.getElementById('dailyBar').style.width=Math.min(100,today.filter(w=>w.learned).length/5*100)+'%';
 }
-function speak(t){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='en-US';speechSynthesis.speak(u);}
+function speak(t){
+  try{
+    const synth=window.speechSynthesis;
+    synth.cancel();
+    synth.resume();
+    const u=new SpeechSynthesisUtterance(String(t));
+    u.lang='en-US';
+    u.rate=0.9;
+    u.pitch=1;
+    const voices=synth.getVoices();
+    const voice=voices.find(v=>/^en(-|_)/i.test(v.lang)) || voices.find(v=>/English/i.test(v.name));
+    if(voice) u.voice=voice;
+    synth.speak(u);
+  }catch(e){
+    console.error('Speech error',e);
+  }
+}
 function getTodayWords(){
  return [...words].sort((a,b)=>(b.errors||0)-(a.errors||0) || (a.learned?1:0)-(b.learned?1:0)).slice(0,5);
 }
@@ -244,14 +260,44 @@ function begin(m,title,list){gameWords=list.length?list:words.slice(0,10);gameIn
 function renderGame(){
  if(gameIndex>=gameWords.length){document.getElementById('gameArea').innerHTML=`<div class="bigword">🎉<div class="en">Готово!</div><div class="ua">Ти опрацювала всі слова.</div></div><button class="primary" onclick="showSection('trainer')">Ще раз</button>`;return}
  let w=gameWords[gameIndex];document.getElementById('gameCount').textContent=`${gameIndex+1} / ${gameWords.length}`;
- if(mode==='flash')document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="en">${esc(w.en)}</div><button class="sound" style="margin-top:18px" onclick="speak(${JSON.stringify(w.en)})">🔊</button><div class="ua" id="flashUa">Натисни, щоб побачити переклад</div></div><button class="primary" onclick="revealFlash()">Показати переклад</button>`;
+ if(mode==='flash')document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="en">${esc(w.en)}</div><button class="sound" style="margin-top:18px" onclick="speak(${JSON.stringify(w.en)})">🔊</button><div class="ua" id="flashUa">Натисни, щоб побачити переклад</div></div><button class="primary" id="flashButton" onclick="revealFlash()">Показати переклад</button>`;
  else if(mode==='quiz'){
   let opts=[w.ua,...words.filter(x=>x.ua!==w.ua).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.ua)].sort(()=>Math.random()-.5);
-  document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="en">${esc(w.en)}</div></div><div class="options">${opts.map(o=>`<button class="option" onclick="answerQuiz(${JSON.stringify(o)},${JSON.stringify(w.ua)})">${esc(o)}</button>`).join('')}</div>`;
+  document.getElementById('gameArea').innerHTML=
+    `<div class="bigword">
+       <div class="en">${esc(w.en)}</div>
+       <button class="sound" style="margin-top:16px" onclick="speak(${JSON.stringify(w.en)})">🔊</button>
+       <div id="quizFeedback" style="min-height:26px;margin-top:12px;font-weight:800"></div>
+     </div>
+     <div class="options">${opts.map(o=>`<button class="option quizOption" data-answer="${esc(o)}" onclick="answerQuiz(this,${JSON.stringify(o)},${JSON.stringify(w.ua)})">${esc(o)}</button>`).join('')}</div>`;
  } else document.getElementById('gameArea').innerHTML=`<div class="bigword"><div class="ua">${esc(w.ua)}</div></div><input id="sentence" placeholder="It's a ..."><button class="primary" onclick="checkSentence()">Перевірити</button>`;
 }
-function revealFlash(){document.getElementById('flashUa').textContent=gameWords[gameIndex].ua;setTimeout(nextGame,350)}
-function answerQuiz(a,c){if(a===c){alert('🎉 Правильно!');nextGame()}else{let w=gameWords[gameIndex],i=words.indexOf(w);if(i>=0)words[i].errors=(words[i].errors||0)+1;save();alert('💗 Спробуй ще раз!')}}
+function revealFlash(){
+  document.getElementById('flashUa').textContent=gameWords[gameIndex].ua;
+  const b=document.getElementById('flashButton');
+  if(b){b.textContent='Наступне →';b.onclick=nextGame;}
+  speak(gameWords[gameIndex].en);
+}
+function answerQuiz(btn,a,c){
+  const feedback=document.getElementById('quizFeedback');
+  if(a===c){
+    btn.style.background='#e8fbf3';
+    btn.style.borderColor='#55b98c';
+    btn.style.color='#277a5b';
+    if(feedback) feedback.innerHTML='🎉 Правильно!';
+    speak(gameWords[gameIndex].en);
+    document.querySelectorAll('.quizOption').forEach(b=>b.disabled=true);
+    setTimeout(nextGame,900);
+  }else{
+    btn.style.background='#fff0f4';
+    btn.style.borderColor='#ef86a8';
+    if(feedback) feedback.innerHTML='💗 Спробуй ще раз!';
+    let w=gameWords[gameIndex],i=words.indexOf(w);
+    if(i>=0)words[i].errors=(words[i].errors||0)+1;
+    save();stats();
+    setTimeout(()=>{btn.style.background='';btn.style.borderColor='';},500);
+  }
+}
 function checkSentence(){let v=document.getElementById('sentence').value.toLowerCase(),target=gameWords[gameIndex].en.toLowerCase();if(v.includes(target)){alert('🎉 Молодець!');nextGame()}else{let i=words.indexOf(gameWords[gameIndex]);if(i>=0)words[i].errors=(words[i].errors||0)+1;save();alert('💗 Спробуй використати слово: '+gameWords[gameIndex].en)}}
 function nextGame(){gameIndex++;renderGame()}
 
